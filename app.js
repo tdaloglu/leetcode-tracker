@@ -5,6 +5,8 @@ const loadingMsg = document.getElementById('loadingMsg');
 const errorMsg = document.getElementById('errorMsg');
 const statsContainer = document.getElementById('statsContainer');
 
+let difficultyChartInstance = null;
+
 searchBtn.addEventListener('click', () => {
     const username = usernameInput.value.trim();
     if (username) {
@@ -43,6 +45,8 @@ async function fetchData(username) {
         document.getElementById('mediumSolved').textContent = medium;
         document.getElementById('hardSolved').textContent = hard;
 
+        renderDifficultyChart(easy, medium, hard);
+
         loadingMsg.classList.add('hidden');
         statsContainer.classList.remove('hidden');
 
@@ -58,4 +62,42 @@ function showError(message) {
 
     errorMsg.textContent = message;
     errorMsg.classList.remove('hidden');
+}
+
+function renderDifficultyChart(easy, medium, hard) {
+    const ctx = document.getElementById('difficultyChart').getContext('2d');
+
+    if (difficultyChartInstance) {
+        difficultyChartInstance.destroy();
+    }
+
+    difficultyChartInstance = new Chart (ctx, {
+        type: "doughnut",
+        data: {
+            labels: ["Easy", "Medium", "Hard"],
+            datasets: [{
+                data: [easy, medium, hard],
+                backgroundColor: [
+                    "#00b8a3",
+                    "#ffc01e",
+                    "ef4743"
+                ],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: "bottom",
+                },
+                title: {
+                    display: true,
+                    text: "Difficulty Distribution",
+                    font: {size: 16}
+                }
+            }
+        }
+    });
 }
