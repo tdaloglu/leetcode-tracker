@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeetCode Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/charts.js"></script>
+<head>
+<body>
+    <div class="container">
+        <header>
+            <h1>LeetCode Tracker</h1>
+            <div class="search-box">
+                <input type="text" id="usernameInput" placeholder="Kullanıcı adı girin...">
+                <button id="searchBtn">Ara</button>
+            </div>
+        </header>
+
+        <div id="loadingMsg" class="mesage-box loading hidden">Veriler çekiliyor, lütfen bekleyin...</div>
+        <div id="errorMsg" class="mesage-box error hidden">Kullanıcı bulunamadı veya sunucu hatası!</div>
+
+        <main id="statsContainer" class="hidden">
+            <section class="cards">
+                <div class="card">
+                    <h3>Toplam</h3>
+                    <p id="totalSolved" class="stat-number">0</p>
+                </div>
+                <div class="card diff-easy">
+                    <h3>Easy</h3>
+                    <p id="easySolved" class="stat-number">0</p>
+                </div>
+                <div class="card diff-medium">
+                    <h3>Medium</h3>
+                    <p id="mediumSolved" class="stat-number">0</p>
+                </div>
+                <div class="card diff-hard">
+                    <h3>Hard</h3>
+                    <p id="hardSolved" class="stat-number">0</p>
+                </div>
+            </section>
+
+            <section class="charts">
+                <div class="chart-container">
+                    <canvas id="difficultyChart"></canvas>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
