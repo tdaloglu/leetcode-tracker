@@ -6,6 +6,7 @@ const errorMsg = document.getElementById('errorMsg');
 const statsContainer = document.getElementById('statsContainer');
 
 let difficultyChartInstance = null;
+let progressChartInstance = null;
 
 searchBtn.addEventListener('click', () => {
     const username = usernameInput.value.trim();
@@ -40,12 +41,42 @@ async function fetchData(username) {
             if (stat.difficulty === "Hard") hard = stat.count;
         });
 
+        const calendarStr = result.data.matchedUser.userCalendar.submissionCalendar;
+        const calendarData = JSON.parse(calendarStr);
+
+        const submissionsByDate = {};
+
+        for (const [timestamp, count] of Object.entries(calendarData)) {
+            const dataObj = new Date(parseInt(timestamp) * 1000);
+            const dateString = dataObj.toISOString().split('T')[0];
+            submissionsByDate[dateString] = count;
+        }
+
+        const last7DaysLabels = [];
+        const last7DaysData = [];
+
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dateString = d.toISOString().split('T')[0];
+
+            const displayDate = d.toLocaleDateString('tr-TR', {day: 'numeric', month: 'short'});
+
+            last7DaysLabels.push(displayDate);
+
+            last7DaysData.push(submissionsByDate[dateString] || 0);
+        }
+
+        console.log("Grafik Etiketleri (Günler):", last7DaysLabels);
+        console.log("Grafik Verisi (Çözümler):", last7DaysData);
+
         document.getElementById('totalSolved').textContent = total;
         document.getElementById('easySolved').textContent = easy;
         document.getElementById('mediumSolved').textContent = medium;
         document.getElementById('hardSolved').textContent = hard;
 
         renderDifficultyChart(easy, medium, hard);
+        renderProgressChart(last7DaysLabels, last7DaysData);
 
         loadingMsg.classList.add('hidden');
         statsContainer.classList.remove('hidden');
@@ -80,7 +111,7 @@ function renderDifficultyChart(easy, medium, hard) {
                 backgroundColor: [
                     "#00b8a3",
                     "#ffc01e",
-                    "ef4743"
+                    "#ef4743"
                 ],
                 borderWidth: 0,
                 hoverOffset: 4
@@ -101,3 +132,50 @@ function renderDifficultyChart(easy, medium, hard) {
         }
     });
 }
+
+    function renderProgressChart(labels, dataArray) {
+        const ctx = document.getElementById('progressChart').getContext('2d');
+
+        if (progressChartInstance) {
+            progressChartInstance.destroy();
+        }
+
+        progressChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Solved Problems',
+                    data: dataArray,
+                    borderColor: '#2c3e50',
+                    backgroundColor: 'rgba(44, 62, 80, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#00b8a3',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Progress Over The Last 7 Days',
+                        font: {size: 16}
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }

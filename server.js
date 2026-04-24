@@ -20,6 +20,9 @@ app.get('/api/user/:username', async(req, res) => {
                         submissions
                     }
                 }
+                userCalendar {
+                    submissionCalendar
+                }
             }
         }
     `;
