@@ -5,8 +5,19 @@ const loadingMsg = document.getElementById('loadingMsg');
 const errorMsg = document.getElementById('errorMsg');
 const statsContainer = document.getElementById('statsContainer');
 
+const goalInput = document.getElementById('goalInput');
+const saveGoalBtn = document.getElementById('saveGoalBtn');
+
+const progressText = document.getElementById('progressText');
+const progressBar = document.getElementById('progressBar');
+
 let difficultyChartInstance = null;
 let progressChartInstance = null;
+
+const savedGoal = localStorage.getItem('leetcodeWeeklyGoal');
+if (savedGoal) {
+    goalInput.value = savedGoal;
+}
 
 searchBtn.addEventListener('click', () => {
     const username = usernameInput.value.trim();
@@ -77,6 +88,25 @@ async function fetchData(username) {
 
         renderDifficultyChart(easy, medium, hard);
         renderProgressChart(last7DaysLabels, last7DaysData);
+
+        const weeklyTotal = last7DaysData.reduce((sum, val) => sum + val, 0);
+
+        const currentGoal = localStorage.getItem('leetcodeWeeklyGoal') || 0;
+
+        if (currentGoal > 0) {
+            let percent = Math.round((weeklyTotal / currentGoal) * 100);
+            
+            if (percent > 100) percent = 100;
+
+            progressText.textContent = `Weekly Status: You solved ${weeklyTotal} of the ${currentGoal} problems! (%${percent})`;
+
+            setTimeout(() => {
+                progressBar.style.width = percent + '%';
+            }, 100);
+        } else {
+            progressText.textContent = `Weekly Status: No Target Set. (You solved ${weeklyTotal} questions in the last 7 days)`;
+            progressBar.style.width = '0%';
+        }
 
         loadingMsg.classList.add('hidden');
         statsContainer.classList.remove('hidden');
@@ -179,3 +209,22 @@ function renderDifficultyChart(easy, medium, hard) {
             }
         });
     }
+
+    saveGoalBtn.addEventListener('click', () => {
+        const newGoal = goalInput.value;
+
+        if (newGoal && newGoal > 0) {
+            localStorage.setItem('leetcodeWeeklyGoal', newGoal);
+
+            const originalText = saveGoalBtn.textContent;
+            saveGoalBtn.textContent = "Saved ✔️";
+            saveGoalBtn.style.backgroundColor = "#00b8a3";
+
+            setTimeout(() => {
+                saveGoalBtn.textContent = originalText;
+                saveGoalBtn.style.backgroundColor = "";
+            }, 2000);
+        } else {
+            alert("Please enter a valid target number!");
+        }
+    })

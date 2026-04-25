@@ -21,6 +21,21 @@
         <div id="errorMsg" class="mesage-box error hidden">Kullanıcı bulunamadı veya sunucu hatası!</div>
 
         <main id="statsContainer" class="hidden">
+            <section class = "goal-section" style="text-align: center; margin-bottom: 25px; padding: 20px; background-color: var(--card-bg); border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                <h3>🎯Set Your Weekly Goal</h3>
+                <div style="display: flex; justify-content: center; gap: 10px; align-items: center; margin-top: 10px; margin-bottom: 20px;">
+                    <input type="number" id="goalInput" placeholder="Ex: 20" min="1" style="width: 100px; text-align: center;">
+                    <button id="saveGoalBtn">Save</button>
+                </div>
+                
+                <div style="max-width: 500px; margin: 0 auto; text-align: left;">
+                    <p id="progressText" style="margin-bottom: 8px; font-weight: bold; color: var(--primary-color);">Progress: Calculating...</p>
+
+                    <div style="background-color: #e2e8f0; border-radius: 10px; height: 22px; width: 100%; overflow: hidden;">
+                        <div id="progressBar" style="background-color: #00b8a3; width: 0%; height: 100%; transition: width 1s ease-in-out;"></div>
+                    </div>
+                </div>
+            </section>
             <section class="cards">
                 <div class="card">
                     <h3>Toplam</h3>
