@@ -38,13 +38,11 @@ async function fetchData(username) {
         const result = await response.json();
 
         if (!result.data || !result.data.matchedUser) {
-            throw new Error("Kullanıcı verisi boş");
+            throw new Error("No such LeetCode user was found.");
         }
 
         const statsArray = result.data.matchedUser.submitStats.acSubmissionNum;
-
         let total = 0, easy = 0, medium = 0, hard = 0;
-
         statsArray.forEach(stat => {
             if (stat.difficulty === "All") total = stat.count;
             if (stat.difficulty === "Easy") easy = stat.count;
@@ -52,68 +50,28 @@ async function fetchData(username) {
             if (stat.difficulty === "Hard") hard = stat.count;
         });
 
-        const calendarStr = result.data.matchedUser.userCalendar.submissionCalendar;
-        const calendarData = JSON.parse(calendarStr);
-
-        const submissionsByDate = {};
-
-        for (const [timestamp, count] of Object.entries(calendarData)) {
-            const dataObj = new Date(parseInt(timestamp) * 1000);
-            const dateString = dataObj.toISOString().split('T')[0];
-            submissionsByDate[dateString] = count;
-        }
-
-        const last7DaysLabels = [];
-        const last7DaysData = [];
-
-        for (let i = 6; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            const dateString = d.toISOString().split('T')[0];
-
-            const displayDate = d.toLocaleDateString('tr-TR', {day: 'numeric', month: 'short'});
-
-            last7DaysLabels.push(displayDate);
-
-            last7DaysData.push(submissionsByDate[dateString] || 0);
-        }
-
-        console.log("Grafik Etiketleri (Günler):", last7DaysLabels);
-        console.log("Grafik Verisi (Çözümler):", last7DaysData);
-
         document.getElementById('totalSolved').textContent = total;
         document.getElementById('easySolved').textContent = easy;
         document.getElementById('mediumSolved').textContent = medium;
         document.getElementById('hardSolved').textContent = hard;
 
+        const calendarStr = result.data.matchedUser.userCalendar?.submissionCalendar;
+        const weeklyData = processCalendarData(calendarStr);
+
         renderDifficultyChart(easy, medium, hard);
-        renderProgressChart(last7DaysLabels, last7DaysData);
-
-        const weeklyTotal = last7DaysData.reduce((sum, val) => sum + val, 0);
-
-        const currentGoal = localStorage.getItem('leetcodeWeeklyGoal') || 0;
-
-        if (currentGoal > 0) {
-            let percent = Math.round((weeklyTotal / currentGoal) * 100);
-            
-            if (percent > 100) percent = 100;
-
-            progressText.textContent = `Weekly Status: You solved ${weeklyTotal} of the ${currentGoal} problems! (%${percent})`;
-
-            setTimeout(() => {
-                progressBar.style.width = percent + '%';
-            }, 100);
-        } else {
-            progressText.textContent = `Weekly Status: No Target Set. (You solved ${weeklyTotal} questions in the last 7 days)`;
-            progressBar.style.width = '0%';
-        }
+        renderProgressChart(weeklyData.labels, weeklyData.data);
+        updateProgressBar(weeklyData.data);
 
         loadingMsg.classList.add('hidden');
         statsContainer.classList.remove('hidden');
-
     } catch (error) {
-        console.error("Bir hata oluştu:", error);
-        showError("Kullanıcı bulunamadı veya sunucu yanıt vermiyor!");
+        console.error("An error occured: ", error);
+
+        if (error.message === "No such LeetCode user was found.") {
+            showError("This username doesn't exist on LeetCode, or the profile is private!");
+        } else {
+            showError("Could not connect to the server.");
+        }
     }
 }
 
@@ -228,3 +186,46 @@ function renderDifficultyChart(easy, medium, hard) {
             alert("Please enter a valid target number!");
         }
     })
+
+    function processCalendarData(calendarStr) {
+        let calendarData = {};
+        if (calendarStr) {
+            calendarData = JSON.parse(calendarStr);
+        }
+
+        const submissionsByDate = {};
+        for (const [timestamp, count] of Object.entries(calendarData)) {
+            const dataObj = new Date(parseInt(timestamp) * 1000);
+            const dateString = dataObj.toISOString().split('T')[0];
+            submissionsByDate[dateString] = count;
+        }
+
+        const labels = [];
+        const data = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dateString = d.toISOString().split('T')[0];
+            const displayDate = d.toLocaleDateString('tr-TR', {day: 'numeric', month: 'short'});
+
+            labels.push(displayDate);
+            data.push(submissionsByDate[dateString] || 0);
+        }
+        return {labels, data};
+    }
+
+    function updateProgressBar(last7DaysData) {
+        const weeklyTotal = last7DaysData.reduce((sum, val) => sum + val, 0);
+        const currentGoal = localStorage.getItem('leetcodeWeeklyGoal') || 0;
+
+        if (currentGoal > 0) {
+            let percent = Math.round((weeklyTotal / currentGoal) * 100);
+            if (percent > 100) percent = 100;
+
+            progressText.textContent = `Weekly Status: You solved ${weeklyTotal} of the ${currentGoal} problems! (%${percent})`;
+            setTimeout(() => {progressBar.style.width = percent + '%';}, 100);
+        } else {
+            progressText.textContent = `Weekly Status: No Target Set. (You solved ${weeklyTotal} questions in the last 7 days)`;
+            progressBar.style.width = '0%';
+        }
+    }
