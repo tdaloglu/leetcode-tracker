@@ -34,7 +34,7 @@ async function fetchData(username) {
     loadingMsg.classList.remove('hidden');
 
     try {
-        const response = await fetch(`http://localhost:5000/api/user/${username}`);
+        const response = await fetch(`https://leetcode-tracker-5gsj.onrender.com/api/user/${username}`);
         const result = await response.json();
 
         if (!result.data || !result.data.matchedUser) {
